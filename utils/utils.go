@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func JSONResponse(w http.ResponseWriter, data interface{}, statusCode int) {
+func JSONResponse(w http.ResponseWriter, data any, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	if statusCode == 0 {
 		statusCode = http.StatusOK

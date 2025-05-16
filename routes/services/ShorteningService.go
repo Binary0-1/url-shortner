@@ -40,10 +40,20 @@ func URLShortener(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := shorten_url(p)
+	url,err := shorten_url(p)
 	if err != nil {
 		return
 	}
+
+	response := map[string]any{
+		"id" : url.ID,
+		"shortcode": url.Shortcode,
+		"url" : url.Url,
+		"createdAt": url.CreatedAt,
+  		"updatedAt": url.UpdatedAt,
+	}
+
+	utils.JSONResponse(w, response, http.StatusOK)
 }
 
 func validate_url(w http.ResponseWriter, r *http.Request) (Payload, bool) {
@@ -67,7 +77,7 @@ func validate_url(w http.ResponseWriter, r *http.Request) (Payload, bool) {
 
 }
 
-func shorten_url(p Payload) error {
+func shorten_url(p Payload) (models.URL, error) {
 	url := models.URL{
 		Url:       p.URL,
 		Shortcode: generateShortCode(),
@@ -77,10 +87,10 @@ func shorten_url(p Payload) error {
 
 	err := db.Create(&url).Error
 	if err != nil {
-		return err
+		return models.URL{},err
 	}
 
-	return nil
+	return url,nil
 }
 
 func generateShortCode() string {
@@ -90,7 +100,5 @@ func generateShortCode() string {
 	for i := range b {
 		b[i] = charset[rand.Intn(len(charset))]
 	}
-
 	return string(b)
-
 }
