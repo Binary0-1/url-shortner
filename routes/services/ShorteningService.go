@@ -2,9 +2,11 @@ package services
 
 import (
 	"encoding/json"
+	"math/rand"
 	"net/http"
+	"urlshort/db"
+	"urlshort/models"
 	"urlshort/utils"
-    "urlshort/models"
 )
 
 // Why not just use simple sequential numbers?
@@ -32,13 +34,16 @@ type Payload struct {
 	URL string `json:"url"`
 }
 
-
 func URLShortener(w http.ResponseWriter, r *http.Request) {
 	p, ok := validate_url(w, r)
 	if !ok {
 		return
 	}
 
+	err := shorten_url(p)
+	if err != nil {
+		return
+	}
 }
 
 func validate_url(w http.ResponseWriter, r *http.Request) (Payload, bool) {
@@ -62,15 +67,30 @@ func validate_url(w http.ResponseWriter, r *http.Request) (Payload, bool) {
 
 }
 
-
-func shorten_url(p Payload) {
+func shorten_url(p Payload) error {
 	url := models.URL{
-		Url : p.URL,
-		Shortcode : generateShortCode(),
+		Url:       p.URL,
+		Shortcode: generateShortCode(),
 	}
 
+	db := db.GetDatabaseConnection()
+
+	err := db.Create(&url).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func generateShortCode() string {
-	return "atc"
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	length := 6
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+
+	return string(b)
+
 }
