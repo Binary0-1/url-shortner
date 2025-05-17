@@ -84,7 +84,6 @@ func shorten_url(p Payload) (models.URL, error) {
 	}
 
 	db := db.GetDatabaseConnection()
-
 	err := db.Create(&url).Error
 	if err != nil {
 		return models.URL{},err
