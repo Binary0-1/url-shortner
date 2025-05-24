@@ -2,8 +2,10 @@ package services
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"net/http"
+	"strings"
 	"urlshort/db"
 	"urlshort/models"
 	"urlshort/utils"
@@ -40,17 +42,19 @@ func URLShortener(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url,err := shorten_url(p)
+	url, err := shorten_url(p)
 	if err != nil {
+
+		utils.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	response := map[string]any{
-		"id" : url.ID,
+		"id":        url.ID,
 		"shortcode": url.Shortcode,
-		"url" : url.Url,
+		"url":       url.Url,
 		"createdAt": url.CreatedAt,
-  		"updatedAt": url.UpdatedAt,
+		"updatedAt": url.UpdatedAt,
 	}
 
 	utils.JSONResponse(w, response, http.StatusOK)
@@ -58,23 +62,12 @@ func URLShortener(w http.ResponseWriter, r *http.Request) {
 
 func validate_url(w http.ResponseWriter, r *http.Request) (Payload, bool) {
 	var p Payload
-	if r.Method != "POST" {
-		utils.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return p, false
-	}
-
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
 		utils.WriteError(w, "Parsing Error ", http.StatusBadRequest)
 		return p, false
 	}
-
-	if p.URL == "" {
-		utils.WriteError(w, "URL not found Please check the key ", http.StatusBadRequest)
-		return p, false
-	}
 	return p, true
-
 }
 
 func shorten_url(p Payload) (models.URL, error) {
@@ -86,10 +79,10 @@ func shorten_url(p Payload) (models.URL, error) {
 	db := db.GetDatabaseConnection()
 	err := db.Create(&url).Error
 	if err != nil {
-		return models.URL{},err
+		return models.URL{}, err
 	}
 
-	return url,nil
+	return url, nil
 }
 
 func generateShortCode() string {
@@ -100,4 +93,52 @@ func generateShortCode() string {
 		b[i] = charset[rand.Intn(len(charset))]
 	}
 	return string(b)
+}
+
+func UpdateURL(w http.ResponseWriter, r *http.Request) {
+	p, ok := validate_url(w, r)
+	if !ok {
+		return
+	}
+
+	params, err := get_url_params(r, "/shorten/", 1)
+
+	fmt.Print(params)
+	if err != nil {
+		utils.WriteError(w, "URL unknown ", http.StatusBadRequest)
+		return
+	}
+
+
+
+	db := db.GetDatabaseConnection()
+	var existingUrl models.URL
+	result := db.Where("shortcode = ?", params).First(&existingUrl)
+	if result.Error != nil {
+		utils.WriteError(w, "URL unknown ", http.StatusBadRequest)
+		return
+	}
+
+	existingUrl.Url = p.URL
+
+	saveResult := db.Save(&existingUrl)
+	if saveResult.Error != nil {
+		utils.WriteError(w, "Failed to update URL: "+saveResult.Error.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	utils.JSONResponse(w, existingUrl, http.StatusOK)
+}
+
+func get_url_params(r *http.Request, basePath string, expectedCount int) (string, error) {
+	path := strings.TrimPrefix(r.URL.Path, basePath)
+	path = strings.Trim(path, "/")
+	parts := strings.Split(path, "/")
+	if path == "" && expectedCount == 0 {
+		return "", nil
+	}
+	if len(parts) != expectedCount {
+		return "", fmt.Errorf("expected %d path segment(s), got %d", expectedCount, len(parts))
+	}
+	return path, nil
 }

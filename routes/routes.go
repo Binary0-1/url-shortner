@@ -6,12 +6,16 @@ import (
 )
 
 func Shortener(w http.ResponseWriter, r *http.Request) {
-	services.URLShortener(w, r);
+	if r.Method == http.MethodPost {
+		services.URLShortener(w, r)
+	}
+	if r.Method == http.MethodPut {
+		services.UpdateURL(w, r)
+	}
 }
-
 
 func RegisterRoutes() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/shorten",Shortener);
+	mux.HandleFunc("/shorten/", Shortener)
 	return mux
 }
