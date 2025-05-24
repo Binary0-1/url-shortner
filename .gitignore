@@ -2,3 +2,5 @@
 /tmp
 .toml
 .air.toml
+
+.env
