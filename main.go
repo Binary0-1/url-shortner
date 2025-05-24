@@ -13,6 +13,7 @@ func main() {
 	var runMigrations bool
 
 	flag.BoolVar(&runMigrations, "migrate", false, "Set this flag to run migrations")
+	fmt.Println("dummy commit")
 	flag.Parse()
 
 	if runMigrations {
