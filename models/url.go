@@ -14,6 +14,7 @@ type BaseModel struct {
 
 type URL struct {
 	BaseModel
-	Url       string `gorm:"type:varchar(2048);not null" json:"url"`
-	Shortcode string `gorm:"type:varchar(100);not null;uniqueIndex" json:"shortcode"`
+	Url         string `gorm:"type:varchar(2048);not null" json:"url"`
+	Shortcode   string `gorm:"type:varchar(100);not null;uniqueIndex" json:"shortcode"`
+	AccessCount int    `gorm:"type:int;default:0" json:"access_count"`
 }
