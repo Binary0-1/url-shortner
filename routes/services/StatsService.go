@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 	"urlshort/db"
@@ -23,7 +22,6 @@ func UrlStats(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	fmt.Print(params)
 	shorturl := params[0]
 
 	var existingUrl models.URL
