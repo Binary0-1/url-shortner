@@ -23,6 +23,10 @@ func Shorten_URl(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		services.URLShortener(w, r)
 	}
+
+	if r.Method == http.MethodGet {
+		services.RedirectUrl(w, r)
+	}
 }
 
 func RegisterRoutes() http.Handler {
