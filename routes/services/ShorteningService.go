@@ -1,9 +1,9 @@
 package services
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net/http"
 	"strings"
 	"urlshort/db"
@@ -37,21 +37,21 @@ type Payload struct {
 }
 
 func URLShortener(w http.ResponseWriter, r *http.Request) {
-	p, ok := validate_url(w, r)
+	p, ok := validateURL(w, r)
 	if !ok {
 		return
 	}
 
-	url, err := shorten_url(p)
+	url, err := shortenURL(p)
 	if err != nil {
 
-		utils.WriteError(w, "Method not allowed", http.StatusMethodNotAllowed)
+		utils.WriteError(w, "Failed to shorten URL", http.StatusInternalServerError)
 		return
 	}
 
 	response := map[string]any{
 		"id":        url.ID,
-		"shortcode": url.Shortcode,
+		"shortCode": url.Shortcode,
 		"url":       url.Url,
 		"createdAt": url.CreatedAt,
 		"updatedAt": url.UpdatedAt,
@@ -60,7 +60,7 @@ func URLShortener(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(w, response, http.StatusOK)
 }
 
-func validate_url(w http.ResponseWriter, r *http.Request) (Payload, bool) {
+func validateURL(w http.ResponseWriter, r *http.Request) (Payload, bool) {
 	var p Payload
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
@@ -70,14 +70,19 @@ func validate_url(w http.ResponseWriter, r *http.Request) (Payload, bool) {
 	return p, true
 }
 
-func shorten_url(p Payload) (models.URL, error) {
+func shortenURL(p Payload) (models.URL, error) {
+
+	shortcode, error := generateUniqueShortCode()
+	if error != nil {
+		return models.URL{}, error
+	}
 	url := models.URL{
 		Url:       p.URL,
-		Shortcode: generateShortCode(),
+		Shortcode: shortcode,
 	}
 
-	db := db.GetDatabaseConnection()
-	err := db.Create(&url).Error
+	database := db.GetDatabaseConnection()
+	err := database.Create(&url).Error
 	if err != nil {
 		return models.URL{}, err
 	}
@@ -85,23 +90,45 @@ func shorten_url(p Payload) (models.URL, error) {
 	return url, nil
 }
 
-func generateShortCode() string {
+func generateShortCode() (string, error) {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	length := 6
 	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
 	}
-	return string(b)
+	for i := range b {
+		b[i] = charset[int(b[i])%len(charset)]
+	}
+	return string(b), nil
+
+}
+
+func generateUniqueShortCode() (string, error) {
+	database := db.GetDatabaseConnection()
+	const maxAttempts = 5
+	for i := 0; i < maxAttempts; i++ {
+		code, err := generateShortCode()
+		if err != nil {
+			return "", err
+		}
+		var count int64
+		database.Model(&models.URL{}).Where("shortcode = ?", code).Count(&count)
+		if count == 0 {
+			return code, nil
+		}
+	}
+	return "", fmt.Errorf("failed to generate unique shortcode after %d attempts", maxAttempts)
 }
 
 func UpdateURL(w http.ResponseWriter, r *http.Request) {
-	p, ok := validate_url(w, r)
+	p, ok := validateURL(w, r)
 	if !ok {
 		return
 	}
 
-	params, err := Get_url_params(r, "/shorten/", 1)
+	params, err := GetUrlParams(r, "/shorten/", 1)
 	if err != nil {
 		utils.WriteError(w, "URL unknown ", http.StatusBadRequest)
 		return
@@ -127,7 +154,7 @@ func UpdateURL(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(w, existingUrl, http.StatusOK)
 }
 
-func Get_url_params(r *http.Request, basePath string, expectedCount int) ([]string, error) {
+func GetUrlParams(r *http.Request, basePath string, expectedCount int) ([]string, error) {
 	path := strings.TrimPrefix(r.URL.Path, basePath)
 	path = strings.Trim(path, "/")
 	parts := strings.Split(path, "/")

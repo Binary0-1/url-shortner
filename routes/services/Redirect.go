@@ -8,7 +8,7 @@ import (
 )
 
 func RedirectUrl(w http.ResponseWriter, r *http.Request) {
-	params, err := Get_url_params(r, "", 1)
+	params, err := GetUrlParams(r, "", 1)
 	if err != nil {
 		return
 	}

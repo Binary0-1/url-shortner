@@ -18,7 +18,7 @@ type UrlResponse struct {
 }
 
 func UrlStats(w http.ResponseWriter, r *http.Request) {
-	params, err := Get_url_params(r, "/shorten/", 2)
+	params, err := GetUrlParams(r, "/shorten/", 2)
 	if err != nil {
 		return
 	}

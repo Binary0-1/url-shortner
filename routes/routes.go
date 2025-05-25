@@ -5,33 +5,34 @@ import (
 	"urlshort/routes/services"
 )
 
-func Shortener(w http.ResponseWriter, r *http.Request) {
-
-	if r.Method == http.MethodPut {
+func HandleShortenWithId(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPut:
 		services.UpdateURL(w, r)
-	}
-	if r.Method == http.MethodDelete {
+	case http.MethodDelete:
 		services.DeleteUrl(w, r)
-	}
-
-	if r.Method == http.MethodGet {
+	case http.MethodGet:
 		services.UrlStats(w, r)
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 }
 
-func Shorten_URl(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
+func HandleShortenRoot(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
 		services.URLShortener(w, r)
+	case http.MethodGet:
+		services.RedirectUrl(w, r)
+	default:
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 
-	if r.Method == http.MethodGet {
-		services.RedirectUrl(w, r)
-	}
 }
 
 func RegisterRoutes() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/shorten/", Shortener)
-	mux.HandleFunc("/shorten", Shorten_URl)
+	mux.HandleFunc("/shorten/", HandleShortenWithId)
+	mux.HandleFunc("/shorten", HandleShortenRoot)
 	return mux
 }

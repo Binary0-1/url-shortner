@@ -8,7 +8,7 @@ import (
 )
 
 func DeleteUrl(w http.ResponseWriter, r *http.Request) {
-	params, ok := Get_url_params(r, "/shorten/", 1)
+	params, ok := GetUrlParams(r, "/shorten/", 1)
 
 	if ok != nil {
 		return
