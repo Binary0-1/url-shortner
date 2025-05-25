@@ -12,7 +12,7 @@ func HandleShortenWithId(w http.ResponseWriter, r *http.Request) {
 	case http.MethodDelete:
 		services.DeleteUrl(w, r)
 	case http.MethodGet:
-		services.UrlStats(w, r)
+		services.DecideHander(w, r)
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
@@ -22,8 +22,6 @@ func HandleShortenRoot(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
 		services.URLShortener(w, r)
-	case http.MethodGet:
-		services.RedirectUrl(w, r)
 	default:
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
