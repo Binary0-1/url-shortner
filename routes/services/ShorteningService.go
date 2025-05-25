@@ -101,7 +101,7 @@ func UpdateURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params, err := get_url_params(r, "/shorten/", 1)
+	params, err := Get_url_params(r, "/shorten/", 1)
 
 	fmt.Print(params)
 	if err != nil {
@@ -109,11 +109,10 @@ func UpdateURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-
 	db := db.GetDatabaseConnection()
 	var existingUrl models.URL
 	result := db.Where("shortcode = ?", params).First(&existingUrl)
+
 	if result.Error != nil {
 		utils.WriteError(w, "URL unknown ", http.StatusBadRequest)
 		return
@@ -130,7 +129,7 @@ func UpdateURL(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(w, existingUrl, http.StatusOK)
 }
 
-func get_url_params(r *http.Request, basePath string, expectedCount int) (string, error) {
+func Get_url_params(r *http.Request, basePath string, expectedCount int) (string, error) {
 	path := strings.TrimPrefix(r.URL.Path, basePath)
 	path = strings.Trim(path, "/")
 	parts := strings.Split(path, "/")
