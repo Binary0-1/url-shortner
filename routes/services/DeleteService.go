@@ -14,10 +14,11 @@ func DeleteUrl(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	shortUrl := params[0]
 	database := db.GetDatabaseConnection()
 
 	var existingUrl models.URL
-	result := database.Where("shortcode = ?", params).First(&existingUrl)
+	result := database.Where("shortcode = ?", shortUrl).First(&existingUrl)
 
 	if result.Error != nil {
 		utils.WriteError(w, "URL unknown ", http.StatusBadRequest)
@@ -27,4 +28,5 @@ func DeleteUrl(w http.ResponseWriter, r *http.Request) {
 	database.Delete(&existingUrl)
 
 	w.WriteHeader(http.StatusNoContent)
+
 }
