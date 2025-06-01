@@ -34,6 +34,14 @@ func GetUrlInfo(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, "URL unknown", http.StatusBadRequest)
 		return
 	}
+
+	url.AccessCount++
+	err = updateUrl(url)
+	if err != nil {
+		utils.WriteError(w, "Failed to update URL: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	response := UrlResponse{
 		Shortcode: url.Shortcode,
 		Original:  url.Url,
@@ -74,4 +82,10 @@ func fetchURLByShortcode(shortcode string) (models.URL, error) {
 		return models.URL{}, result.Error
 	}
 	return url, nil
+}
+
+func updateUrl(url models.URL) error {
+	database := db.GetDatabaseConnection()
+	result := database.Save(&url)
+	return result.Error
 }
