@@ -9,7 +9,6 @@ import (
 )
 
 func DecideHander(w http.ResponseWriter, r *http.Request) {
-
 	path := strings.TrimPrefix(r.URL.Path, "/shorten/")
 	parts := strings.Split(path, "/")
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"urlshort/db/migrations"
 	"urlshort/routes"
 )
@@ -22,5 +23,9 @@ func main() {
 
 	}
 	mux := routes.RegisterRoutes()
-	log.Fatal(http.ListenAndServe(":8082", mux))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8082"
+	}
+	log.Fatal(http.ListenAndServe(":"+port, mux))
 }
