@@ -20,7 +20,7 @@ func GetDatabaseConnection() *gorm.DB {
 	once.Do(func() {
 		err := godotenv.Load()
 		if err != nil {
-			log.Fatalf("Error loading .env file: %v", err)
+			log.Println("No .env file found — assuming production environment")
 		}
 		databaseURL := os.Getenv("DATABASE_URL")
 		if databaseURL == "" {
