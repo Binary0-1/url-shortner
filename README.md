@@ -5,6 +5,9 @@ A lightweight and secure URL shortener built with Go.
 Easily shorten URLs with unique, random shortcodes to prevent guessability, update existing URLs, and retrieve usage statistics.
 
 live url : url-shortner69.up.railway.app/shorten  ///please do not exploit 🙃🙃
+This is an submission to projects mentions on roadmap.sh 
+https://roadmap.sh/projects/url-shortening-service
+Please leave a start if you like it , thanks
 
 ---
 
