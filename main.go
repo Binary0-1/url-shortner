@@ -27,5 +27,7 @@ func main() {
 	if port == "" {
 		port = "8082"
 	}
+	log.Printf("Running server on port %s", port)
+
 	log.Fatal(http.ListenAndServe(":"+port, mux))
 }
