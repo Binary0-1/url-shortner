@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"fmt"
 	"net/http"
 	"urlshort/routes/services"
 )
@@ -23,6 +24,7 @@ func HandleShortenRoot(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		services.URLShortener(w, r)
 	default:
+		fmt.Printf("Method Not Allowed: %s\n", r.Method)
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 	}
 
